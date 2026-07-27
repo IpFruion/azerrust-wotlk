@@ -5,6 +5,7 @@
 #include "DetourExtended.h"
 #include "DetourCommon.h"
 #include "Geometry.h"
+#include <azerrust_geometry.h>
 
 float dtQueryFilterExt::getCost(float const* pa, float const* pb,
                 const dtPolyRef /*prevRef*/, dtMeshTile const* /*prevTile*/, dtPoly const* /*prevPoly*/,
@@ -13,7 +14,7 @@ float dtQueryFilterExt::getCost(float const* pa, float const* pb,
 {
     float startX = pa[2], startY = pa[0], startZ = pa[1];
     float destX = pb[2], destY = pb[0], destZ = pb[1];
-    float slopeAngle = getSlopeAngle(startX, startY, startZ, destX, destY, destZ);
+    float slopeAngle = geometry::getSlopeAngle(startX, startY, startZ, destX, destY, destZ);
     float slopeAngleDegree = (slopeAngle * 180.0f / M_PI);
     float cost = slopeAngleDegree > 0 ? 1.0f + (1.0f * (slopeAngleDegree / 100)) : 1.0f;
     float dist = dtVdist(pa, pb);

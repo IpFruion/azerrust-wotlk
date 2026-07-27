@@ -134,13 +134,16 @@ foreach(APPLICATION_NAME ${APPLICATIONS_BUILD_LIST})
   elseif(${APP_PROJECT_NAME} MATCHES "worldserver")
     target_link_libraries(${APP_PROJECT_NAME}
       PUBLIC
+        -Wl,--start-group
         modules
         scripts
         game
         gsoap
         readline
         gperftools
-        libsidecar)
+        libsidecar
+        ${CMAKE_BINARY_DIR}/deps/azerrust_geometry/target/release/libazerrust_geometry.a
+        -Wl,--end-group)
 
     if (UNIX AND NOT NOJEM)
       set(${APP_PROJECT_NAME}_LINK_FLAGS "-pthread -lncurses ${${APP_PROJECT_NAME}_LINK_FLAGS}")

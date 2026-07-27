@@ -18,6 +18,7 @@
 #include "Position.h"
 #include "ByteBuffer.h"
 #include "Geometry.h"
+#include <azerrust_geometry.h>
 #include "GridDefines.h"
 #include "Random.h"
 #include <G3D/g3dmath.h>
@@ -93,7 +94,7 @@ float Position::GetAngle(Position const* obj) const
 // Return angle in range 0..2*pi
 float Position::GetAngle(const float x, const float y) const
 {
-    return getAngle(GetPositionX(), GetPositionY(), x, y);
+    return geometry::getAngle(GetPositionX(), GetPositionY(), x, y);
 }
 
 void Position::GetSinCos(const float x, const float y, float& vsin, float& vcos) const

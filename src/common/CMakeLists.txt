@@ -83,6 +83,12 @@ if (BUILD_APPLICATION_WORLDSERVER OR BUILD_TOOLS_MAPS)
       Detour)
 endif()
 
+if (BUILD_APPLICATION_WORLDSERVER OR BUILD_TOOLS_MAPS)
+  target_link_libraries(common
+    PUBLIC
+      azerrust_geometry)
+endif()
+
 set_target_properties(common
   PROPERTIES
     FOLDER

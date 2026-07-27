@@ -70,6 +70,14 @@ RUN apt-get update                                                     \
         libreadline-dev zlib1g-dev libbz2-dev libncurses5-dev liblzma-dev  \
     && rm -rf /var/lib/apt/lists/*
 
+# Set environment variables for Rust and Cargo path
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH
+
+# Download and install Rust non-interactively
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+
 COPY CMakeLists.txt /azerothcore/CMakeLists.txt
 COPY conf /azerothcore/conf
 COPY deps /azerothcore/deps
