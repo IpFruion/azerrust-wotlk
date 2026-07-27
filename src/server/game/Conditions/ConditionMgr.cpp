@@ -16,6 +16,7 @@
  */
 
 #include "ConditionMgr.h"
+#include <azerrust.h>
 #include "AchievementMgr.h"
 #include "GameEventMgr.h"
 #include "GameObject.h"
@@ -37,6 +38,18 @@
 // Can have CONDITION_SOURCE_TYPE_NONE && !mReferenceId if called from a special event (ie: eventAI)
 bool Condition::Meets(ConditionSourceInfo& sourceInfo)
 {
+    conditions::Condition cond;
+    cond.cond_type = ConditionType;
+    cond.val1 = ConditionValue1;
+    cond.val2 = ConditionValue2;
+    cond.val3 = ConditionValue3;
+    cond.negative = NegativeCondition;
+    cond.target = ConditionTarget;
+    int8 condMeet = conditions::meets(sourceInfo, cond);
+    if (condMeet == 0)
+        return false;
+    else if (condMeet == 1)
+        return true;
     // ASSERT(ConditionTarget < MAX_CONDITION_TARGETS);
     if (ConditionTarget >= MAX_CONDITION_TARGETS)
     {
@@ -51,6 +64,7 @@ bool Condition::Meets(ConditionSourceInfo& sourceInfo)
         LOG_DEBUG("condition", "Condition object not found for condition (Entry: {} Type: {} Group: {})", SourceEntry, SourceType, SourceGroup);
         return false;
     }
+
     bool condMeets = false;
     switch (ConditionType)
     {

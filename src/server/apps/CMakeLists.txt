@@ -137,11 +137,13 @@ foreach(APPLICATION_NAME ${APPLICATIONS_BUILD_LIST})
         -Wl,--start-group
         modules
         scripts
+        azerrust
         game
         gsoap
         readline
         gperftools
         libsidecar
+        ${CMAKE_BINARY_DIR}/deps/azerrust/target/release/libazerrust.a
         ${CMAKE_BINARY_DIR}/deps/azerrust_geometry/target/release/libazerrust_geometry.a
         -Wl,--end-group)
 
