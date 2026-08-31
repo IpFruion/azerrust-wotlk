@@ -1,5 +1,10 @@
-Flex.NormalDungeonPercent = 5
-Flex.HeroicDungeonPercent = 7
-Flex.NormalRaidPercent = 10
-Flex.HeroicRaidPercent = 13
-Flex.MythicRaidPercent = 15
+Flex.Normal.Dungeon.Stat.Percent = 5
+Flex.Heroic.Dungeon.Stat.Percent = 7
+Flex.Normal.Raid.Stat.Percent = 10
+Flex.Heroic.Raid.Stat.Percent = 13
+Flex.Mythic.Raid.Stat.Percent = 15
+Flex.Normal.Dungeon.SpellPower.Percent = 5
+Flex.Heroic.Dungeon.SpellPower.Percent = 7
+Flex.Normal.Raid.SpellPower.Percent = 10
+Flex.Heroic.Raid.SpellPower.Percent = 13
+Flex.Mythic.Raid.SpellPower.Percent = 15
