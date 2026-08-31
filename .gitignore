@@ -126,6 +126,7 @@ __pycache__/
 #  !modules/yourmodule
 #
 # ==================
+!modules/mod_flex
 
 # Live-stack e2e private / local tooling (scratch tests stay uncommitted)
 e2e/local/**

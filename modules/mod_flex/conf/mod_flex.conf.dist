@@ -1,0 +1,5 @@
+Flex.NormalDungeonPercent = 5
+Flex.HeroicDungeonPercent = 7
+Flex.NormalRaidPercent = 10
+Flex.HeroicRaidPercent = 13
+Flex.MythicRaidPercent = 15
