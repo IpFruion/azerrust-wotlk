@@ -477,6 +477,33 @@ class flex_player : public PlayerScript {
 public:
   flex_player() : PlayerScript("flex_player") { }
 
+  void OnPlayerResurrect(Player *player, float /*restore_percent*/, bool& /*applySickness*/) override {
+    if (!player)
+      return;
+
+    // Remove flex auras on resurrection so they don't persist outside the instance.
+    bool hadAura = false;
+    if (player->HasAura(FLEX_STAT_SPELL_ID)) {
+      LOG_INFO("module.flex", "Flex Stat removed on resurrection (GUID {})", player->GetGUID().ToString());
+      player->RemoveAura(FLEX_STAT_SPELL_ID);
+      hadAura = true;
+    }
+    if (player->HasAura(FLEX_SPELLPOWER_SPELL_ID)) {
+      LOG_INFO("module.flex", "Flex SpellPower removed on resurrection (GUID {})", player->GetGUID().ToString());
+      player->RemoveAura(FLEX_SPELLPOWER_SPELL_ID);
+      hadAura = true;
+    }
+    if (player->HasAura(FLEX_ARMOR_SPELL_ID)) {
+      LOG_INFO("module.flex", "Flex Armor removed on resurrection (GUID {})", player->GetGUID().ToString());
+      player->RemoveAura(FLEX_ARMOR_SPELL_ID);
+      hadAura = true;
+    }
+    if (hadAura)
+      player->UpdateAllStats();
+
+    RemoveFlexControlledAuras(player);
+  }
+
   void OnPlayerMapChanged(Player *player) override {
     if (!player || !player->GetMap() || player->GetMap()->ToInstanceMap())
       return;
