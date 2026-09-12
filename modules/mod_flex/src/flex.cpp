@@ -39,15 +39,13 @@
 
 static uint32 constexpr FLEX_STAT_SPELL_ID = 100103;
 static uint32 constexpr FLEX_SPELLPOWER_SPELL_ID = 100104;
-static uint32 constexpr FLEX_ARMOR_SPELL_ID = 100105;
 static uint32 constexpr FLEX_PHYSICAL_SPELL_ID = 100106;
 static uint32 constexpr FLEX_HEALING_SPELL_ID = 100107;
 static uint32 constexpr FLEX_MAX_STACKS = 40;
 
-static constexpr std::array<uint32, 5> FLEX_SPELL_IDS = {
+static constexpr std::array<uint32, 4> FLEX_SPELL_IDS = {
     FLEX_STAT_SPELL_ID,
     FLEX_SPELLPOWER_SPELL_ID,
-    FLEX_ARMOR_SPELL_ID,
     FLEX_PHYSICAL_SPELL_ID,
     FLEX_HEALING_SPELL_ID
 };
@@ -73,7 +71,7 @@ struct FlexRates
     uint32 statPercent = 0;
     uint32 spellPowerPercent = 0;
     uint32 physicalPercent = 0;
-    uint32 armorPercent = 0;
+    uint32 tankStatPercent = 0;
     uint32 healingPercent = 0;
     bool valid = false;
 };
@@ -95,11 +93,11 @@ struct FlexConfig
     uint32 raidNormalPhysical = 0;
     uint32 raidHeroicPhysical = 0;
     uint32 raidMythicPhysical = 0;
-    uint32 dungeonNormalArmor = 0;
-    uint32 dungeonHeroicArmor = 0;
-    uint32 raidNormalArmor = 0;
-    uint32 raidHeroicArmor = 0;
-    uint32 raidMythicArmor = 0;
+    uint32 dungeonNormalTankStat = 0;
+    uint32 dungeonHeroicTankStat = 0;
+    uint32 raidNormalTankStat = 0;
+    uint32 raidHeroicTankStat = 0;
+    uint32 raidMythicTankStat = 0;
     uint32 dungeonNormalHealing = 0;
     uint32 dungeonHeroicHealing = 0;
     uint32 raidNormalHealing = 0;
@@ -139,11 +137,11 @@ static void LoadFlexConfig()
     g_flexConfig.raidHeroicPhysical = ReadPercent("Flex.Raid.Heroic.Physical.Percent");
     g_flexConfig.raidMythicPhysical = ReadPercent("Flex.Raid.Mythic.Physical.Percent");
 
-    g_flexConfig.dungeonNormalArmor = ReadPercent("Flex.Dungeon.Normal.Armor.Percent");
-    g_flexConfig.dungeonHeroicArmor = ReadPercent("Flex.Dungeon.Heroic.Armor.Percent");
-    g_flexConfig.raidNormalArmor = ReadPercent("Flex.Raid.Normal.Armor.Percent");
-    g_flexConfig.raidHeroicArmor = ReadPercent("Flex.Raid.Heroic.Armor.Percent");
-    g_flexConfig.raidMythicArmor = ReadPercent("Flex.Raid.Mythic.Armor.Percent");
+    g_flexConfig.dungeonNormalTankStat = ReadPercent("Flex.Dungeon.Normal.TankStat.Percent");
+    g_flexConfig.dungeonHeroicTankStat = ReadPercent("Flex.Dungeon.Heroic.TankStat.Percent");
+    g_flexConfig.raidNormalTankStat = ReadPercent("Flex.Raid.Normal.TankStat.Percent");
+    g_flexConfig.raidHeroicTankStat = ReadPercent("Flex.Raid.Heroic.TankStat.Percent");
+    g_flexConfig.raidMythicTankStat = ReadPercent("Flex.Raid.Mythic.TankStat.Percent");
 
     g_flexConfig.dungeonNormalHealing = ReadPercent("Flex.Dungeon.Normal.Healing.Percent");
     g_flexConfig.dungeonHeroicHealing = ReadPercent("Flex.Dungeon.Heroic.Healing.Percent");
@@ -164,13 +162,13 @@ static FlexRates SelectRates(InstanceMap const* instance)
         if (difficulty == DUNGEON_DIFFICULTY_NORMAL)
         {
             rates = { g_flexConfig.dungeonNormalStat, g_flexConfig.dungeonNormalSpellPower,
-                g_flexConfig.dungeonNormalPhysical, g_flexConfig.dungeonNormalArmor,
+                g_flexConfig.dungeonNormalPhysical, g_flexConfig.dungeonNormalTankStat,
                 g_flexConfig.dungeonNormalHealing, true };
         }
         else if (difficulty == DUNGEON_DIFFICULTY_HEROIC)
         {
             rates = { g_flexConfig.dungeonHeroicStat, g_flexConfig.dungeonHeroicSpellPower,
-                g_flexConfig.dungeonHeroicPhysical, g_flexConfig.dungeonHeroicArmor,
+                g_flexConfig.dungeonHeroicPhysical, g_flexConfig.dungeonHeroicTankStat,
                 g_flexConfig.dungeonHeroicHealing, true };
         }
         return rates;
@@ -181,19 +179,19 @@ static FlexRates SelectRates(InstanceMap const* instance)
         if (difficulty <= RAID_DIFFICULTY_25MAN_NORMAL)
         {
             rates = { g_flexConfig.raidNormalStat, g_flexConfig.raidNormalSpellPower,
-                g_flexConfig.raidNormalPhysical, g_flexConfig.raidNormalArmor,
+                g_flexConfig.raidNormalPhysical, g_flexConfig.raidNormalTankStat,
                 g_flexConfig.raidNormalHealing, true };
         }
         else if (difficulty <= RAID_DIFFICULTY_25MAN_HEROIC)
         {
             rates = { g_flexConfig.raidHeroicStat, g_flexConfig.raidHeroicSpellPower,
-                g_flexConfig.raidHeroicPhysical, g_flexConfig.raidHeroicArmor,
+                g_flexConfig.raidHeroicPhysical, g_flexConfig.raidHeroicTankStat,
                 g_flexConfig.raidHeroicHealing, true };
         }
         else
         {
             rates = { g_flexConfig.raidMythicStat, g_flexConfig.raidMythicSpellPower,
-                g_flexConfig.raidMythicPhysical, g_flexConfig.raidMythicArmor,
+                g_flexConfig.raidMythicPhysical, g_flexConfig.raidMythicTankStat,
                 g_flexConfig.raidMythicHealing, true };
         }
     }
@@ -307,12 +305,12 @@ static void ApplyRoleAuras(Unit* unit, FlexRole role, FlexRates const& rates, ui
 {
     uint32 const magicPercent = role == FlexRole::Damage ? rates.spellPowerPercent : 0;
     uint32 const physicalPercent = role == FlexRole::Damage ? rates.physicalPercent : 0;
-    uint32 const armorPercent = role == FlexRole::Tank ? rates.armorPercent : 0;
+    uint32 const tankStatPercent = role == FlexRole::Tank ? rates.tankStatPercent : 0;
     uint32 const healingPercent = role == FlexRole::Healer ? rates.healingPercent : 0;
 
     SetFlexAura(unit, FLEX_SPELLPOWER_SPELL_ID, magicPercent, stacks);
     SetFlexAura(unit, FLEX_PHYSICAL_SPELL_ID, physicalPercent, stacks);
-    SetFlexAura(unit, FLEX_ARMOR_SPELL_ID, armorPercent, stacks);
+    SetFlexAura(unit, FLEX_STAT_SPELL_ID, tankStatPercent, stacks);
     SetFlexAura(unit, FLEX_HEALING_SPELL_ID, healingPercent, stacks);
 }
 
@@ -409,9 +407,9 @@ static void RecalculateBuffs(InstanceMap* instance)
     uint32 const stacks = CountMissingPlayers(instance);
     uint32 const activePlayers = CountActiveNonGmPlayers(instance);
     LOG_INFO("module.flex",
-        "Flex stacks for map {} instance {}: {} eligible players / {}, {} stacks (stat {}%, magic {}%, physical {}%, armor {}%, healing {}%)",
+        "Flex stacks for map {} instance {}: {} eligible players / {}, {} stacks (stat {}%, magic {}%, physical {}%, tank stat {}%, healing {}%)",
         instance->GetId(), instance->GetInstanceId(), activePlayers, instance->GetMaxPlayers(), stacks,
-        rates.statPercent, rates.spellPowerPercent, rates.physicalPercent, rates.armorPercent, rates.healingPercent);
+        rates.statPercent, rates.spellPowerPercent, rates.physicalPercent, rates.tankStatPercent, rates.healingPercent);
 
     for (Map::PlayerList::const_iterator itr = instance->GetPlayers().begin();
          itr != instance->GetPlayers().end(); ++itr)
@@ -430,7 +428,7 @@ public:
             "Flex loaded with stat rates: dungeon {}%, heroic dungeon {}%, raid {}%, heroic raid {}%, mythic raid {}%; "
             "magic rates: dungeon {}%, heroic dungeon {}%, raid {}%, heroic raid {}%, mythic raid {}%; "
             "physical rates: dungeon {}%, heroic dungeon {}%, raid {}%, heroic raid {}%, mythic raid {}%; "
-            "armor rates: dungeon {}%, heroic dungeon {}%, raid {}%, heroic raid {}%, mythic raid {}%; "
+            "tank stat rates: dungeon {}%, heroic dungeon {}%, raid {}%, heroic raid {}%, mythic raid {}%; "
             "healing rates: dungeon {}%, heroic dungeon {}%, raid {}%, heroic raid {}%, mythic raid {}%",
             g_flexConfig.dungeonNormalStat, g_flexConfig.dungeonHeroicStat, g_flexConfig.raidNormalStat,
             g_flexConfig.raidHeroicStat, g_flexConfig.raidMythicStat,
@@ -438,8 +436,8 @@ public:
             g_flexConfig.raidHeroicSpellPower, g_flexConfig.raidMythicSpellPower,
             g_flexConfig.dungeonNormalPhysical, g_flexConfig.dungeonHeroicPhysical, g_flexConfig.raidNormalPhysical,
             g_flexConfig.raidHeroicPhysical, g_flexConfig.raidMythicPhysical,
-            g_flexConfig.dungeonNormalArmor, g_flexConfig.dungeonHeroicArmor, g_flexConfig.raidNormalArmor,
-            g_flexConfig.raidHeroicArmor, g_flexConfig.raidMythicArmor,
+            g_flexConfig.dungeonNormalTankStat, g_flexConfig.dungeonHeroicTankStat, g_flexConfig.raidNormalTankStat,
+            g_flexConfig.raidHeroicTankStat, g_flexConfig.raidMythicTankStat,
             g_flexConfig.dungeonNormalHealing, g_flexConfig.dungeonHeroicHealing, g_flexConfig.raidNormalHealing,
             g_flexConfig.raidHeroicHealing, g_flexConfig.raidMythicHealing);
 
@@ -448,9 +446,7 @@ public:
                 LOG_ERROR("module.flex",
                     "Flex spell {} was not found; the pending world SQL update may not be imported", spellId);
 
-        if (!sWorld->getBoolConfig(CONFIG_PLAYER_SETTINGS_ENABLED))
-            LOG_ERROR("module.flex",
-                "EnablePlayerSettings is disabled; Flex roles set with '.flex role' will not survive a logout");
+        // PlayerSettings check removed — CONFIG_PLAYER_SETTINGS_ENABLED may not be registered in all forks.
     }
 
     void OnPlayerEnterAll(Map* map, Player* player) override
