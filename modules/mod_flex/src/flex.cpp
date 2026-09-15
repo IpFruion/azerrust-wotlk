@@ -41,13 +41,17 @@ static uint32 constexpr FLEX_STAT_SPELL_ID = 100103;
 static uint32 constexpr FLEX_SPELLPOWER_SPELL_ID = 100104;
 static uint32 constexpr FLEX_PHYSICAL_SPELL_ID = 100106;
 static uint32 constexpr FLEX_HEALING_SPELL_ID = 100107;
+static uint32 constexpr FLEX_TANK_CC_IMMUNITY_SPELL_ID = 100108;
+static uint32 constexpr FLEX_TANK_STAT_SPELL_ID = 100109;
 static uint32 constexpr FLEX_MAX_STACKS = 40;
 
-static constexpr std::array<uint32, 4> FLEX_SPELL_IDS = {
+static constexpr std::array<uint32, 6> FLEX_SPELL_IDS = {
     FLEX_STAT_SPELL_ID,
     FLEX_SPELLPOWER_SPELL_ID,
     FLEX_PHYSICAL_SPELL_ID,
-    FLEX_HEALING_SPELL_ID
+    FLEX_HEALING_SPELL_ID,
+    FLEX_TANK_CC_IMMUNITY_SPELL_ID,
+    FLEX_TANK_STAT_SPELL_ID
 };
 
 /// Persisted per-character role, declared with ".flex role". Values are stored in
@@ -234,6 +238,19 @@ static FlexRole GetFlexRole(Player* player)
     }
 }
 
+static uint32 CountTanksInInstance(InstanceMap const* instance)
+{
+    uint32 count = 0;
+    for (Map::PlayerList::const_iterator itr = instance->GetPlayers().begin();
+         itr != instance->GetPlayers().end(); ++itr)
+    {
+        Player* plr = itr->GetSource();
+        if (plr && !plr->IsGameMaster() && GetFlexRole(plr) == FlexRole::Tank)
+            ++count;
+    }
+    return count;
+}
+
 static char const* GetFlexRoleName(FlexRole role)
 {
     switch (role)
@@ -310,7 +327,7 @@ static void ApplyRoleAuras(Unit* unit, FlexRole role, FlexRates const& rates, ui
 
     SetFlexAura(unit, FLEX_SPELLPOWER_SPELL_ID, magicPercent, stacks);
     SetFlexAura(unit, FLEX_PHYSICAL_SPELL_ID, physicalPercent, stacks);
-    SetFlexAura(unit, FLEX_STAT_SPELL_ID, tankStatPercent, stacks);
+    SetFlexAura(unit, FLEX_TANK_STAT_SPELL_ID, tankStatPercent, stacks);
     SetFlexAura(unit, FLEX_HEALING_SPELL_ID, healingPercent, stacks);
 }
 
@@ -363,6 +380,18 @@ static void ApplyFlexToPlayer(Player* player, FlexRates const& rates, uint32 sta
     SetFlexAura(player, FLEX_STAT_SPELL_ID, rates.statPercent, stacks);
     ApplyRoleAuras(player, GetFlexRole(player), rates, stacks);
     ApplyFlexToControlled(player, rates, stacks);
+
+    Map* map = player->GetMap();
+    InstanceMap* instance = map ? map->ToInstanceMap() : nullptr;
+    if (instance && GetFlexRole(player) == FlexRole::Tank && CountTanksInInstance(instance) == 1)
+    {
+        if (!player->HasAura(FLEX_TANK_CC_IMMUNITY_SPELL_ID))
+            player->CastSpell(player, FLEX_TANK_CC_IMMUNITY_SPELL_ID, true);
+    }
+    else
+    {
+        player->RemoveAura(FLEX_TANK_CC_IMMUNITY_SPELL_ID);
+    }
 }
 
 static void SyncPlayerFlex(Player* player)
